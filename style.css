@@ -1,0 +1,209 @@
+/* ============================================================
+   舒爾特方格 · 樣式表 style.css
+   - 用 CSS 變數做主題色，深色為預設，淺色以 [data-theme="light"] 覆蓋
+   - 深/淺色由 script.js 在 <html> 上切換 data-theme 屬性
+   ============================================================ */
+
+/* 匯入字型：Space Grotesk（介面）、Space Mono（數字/計時，等寬對齊） */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+/* ---------- 主題色（深色為預設值） ---------- */
+:root{
+  --ink:#0e1015;        /* 背景底色 */
+  --ink-2:#161a23;      /* 卡片表面 */
+  --ink-3:#1d222e;      /* 更高一層的區塊（格子、輸入框） */
+  --line:#2a3140;       /* 邊框 */
+  --line-soft:#222836;  /* 較淡的邊框 */
+  --text:#eef1f6;       /* 主要文字 */
+  --muted:#8b93a6;      /* 次要文字 */
+  --muted-2:#5c6478;    /* 更淡的文字 */
+  --signal:#ff5c38;     /* 主色（按鈕、強調） */
+  --signal-dim:#3a1f1a; /* 點錯時的底色 */
+  --go:#34e2b0;         /* 點對的綠 */
+  --go-dim:#173a31;     /* 已完成格子的底色 */
+  --hint:#ffc83a;       /* 提醒/下一個數字的黃 */
+  --chip-on-bg:linear-gradient(180deg,#241a18,var(--ink-3));   /* 選中難度鈕的底 */
+  --banner-bg:linear-gradient(180deg,#221715,var(--ink-2));    /* 挑戰橫幅的底 */
+  --radius:14px;
+  --mono:'Space Mono',ui-monospace,monospace;
+  --sans:'Space Grotesk',system-ui,-apple-system,sans-serif;
+}
+
+/* ---------- 淺色主題（覆蓋上面的變數） ---------- */
+[data-theme="light"]{
+  --ink:#f5f6f9;
+  --ink-2:#ffffff;
+  --ink-3:#eef1f6;
+  --line:#d5dae4;
+  --line-soft:#e4e8f0;
+  --text:#161a22;
+  --muted:#5f6672;
+  --muted-2:#9aa2b2;
+  --signal:#ef5029;
+  --signal-dim:#ffe6df;
+  --go:#0f9d78;
+  --go-dim:#d7f3ea;
+  --hint:#c98a00;
+  --chip-on-bg:linear-gradient(180deg,#fff1ec,var(--ink-3));
+  --banner-bg:linear-gradient(180deg,#fff1ec,var(--ink-2));
+}
+
+/* ---------- 基礎版面 ---------- */
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{
+  font-family:var(--sans);
+  color:var(--text);
+  /* 兩道柔光 + 底色，淺色主題會另外覆蓋 */
+  background:
+    radial-gradient(1100px 600px at 80% -10%, #1a2030 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, #1a1620 0%, transparent 55%),
+    var(--ink);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s, color .25s;
+}
+[data-theme="light"] body{
+  background:
+    radial-gradient(1100px 600px at 80% -10%, #e9eefb 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, #fdeee8 0%, transparent 55%),
+    var(--ink);
+}
+
+/* 通用工具：隱藏元素（切換畫面用，避免掉回 CSS 預設值的問題） */
+.hidden{display:none !important;}
+
+.wrap{max-width:560px;margin:0 auto;padding:24px 16px 60px;}
+
+/* ---------- 右上角主題切換鈕 ---------- */
+.theme-btn{
+  position:fixed;top:14px;right:14px;z-index:20;
+  width:40px;height:40px;border-radius:50%;
+  border:1px solid var(--line);background:var(--ink-2);color:var(--text);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.theme-btn:hover{border-color:var(--signal);color:var(--signal);}
+
+/* ---------- 標題 ---------- */
+header{margin-bottom:20px;padding-right:44px;}
+.eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--signal);font-weight:600;margin-bottom:8px;}
+h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em;}
+.sub{font-size:12px;color:var(--muted);margin-top:7px;}
+
+/* ---------- 卡片與表單元件 ---------- */
+.card{background:var(--ink-2);border:1px solid var(--line-soft);border-radius:var(--radius);padding:18px;}
+.field-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-weight:600;margin:0 0 9px;}
+.row + .row{margin-top:18px;}
+
+/* 難度選擇鈕 */
+.chips{display:flex;gap:8px;}
+.chip{flex:1;padding:13px 0;border-radius:11px;border:1px solid var(--line-soft);background:var(--ink-3);
+  color:var(--muted);font-family:var(--mono);font-size:15px;font-weight:700;cursor:pointer;transition:.15s;}
+.chip.on{border-color:var(--signal);color:var(--text);background:var(--chip-on-bg);}
+.chip:disabled{cursor:default;}
+.chip .lbl{display:block;font-family:var(--sans);font-size:10px;font-weight:600;color:var(--muted-2);margin-top:3px;letter-spacing:.04em;}
+.chip.on .lbl{color:var(--signal);}
+
+/* 提醒模式開關 */
+.toggle{display:flex;align-items:center;justify-content:space-between;
+  border:1px solid var(--line-soft);background:var(--ink-3);border-radius:11px;padding:13px 14px;cursor:pointer;}
+.toggle.locked{cursor:default;opacity:.75;}   /* 挑戰模式時鎖定不可改 */
+.toggle .t-text{font-size:13px;}
+.toggle .t-text small{display:block;color:var(--muted);font-size:11px;margin-top:3px;}
+.switch{width:44px;height:26px;border-radius:999px;background:var(--line);position:relative;flex:none;transition:.2s;}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
+.toggle.on .switch{background:var(--hint);}
+.toggle.on .switch::after{transform:translateX(18px);}
+
+/* 按鈕 */
+.btn{width:100%;padding:16px;border:none;border-radius:12px;cursor:pointer;font-family:var(--sans);
+  font-size:16px;font-weight:700;letter-spacing:.02em;transition:transform .08s, filter .15s;}
+.btn:active{transform:scale(.985);}
+.btn-primary{background:var(--signal);color:#fff;}
+.btn-primary:hover{filter:brightness(1.07);}
+.btn-ghost{background:var(--ink-3);color:var(--text);border:1px solid var(--line);}
+.btn-ghost:hover{border-color:var(--muted-2);}
+.btn-stack > * + *{margin-top:10px;}   /* 垂直堆疊按鈕的間距 */
+
+/* 挑戰橫幅（打開別人連結時顯示） */
+.banner{display:flex;align-items:center;gap:12px;background:var(--banner-bg);
+  border:1px solid var(--signal);border-radius:12px;padding:13px 15px;margin-bottom:14px;}
+.banner .b-ico{font-size:20px;}
+.banner .b-text{font-size:13px;line-height:1.45;}
+.banner .b-text b{color:var(--signal);}
+.banner .b-text .code{font-family:var(--mono);letter-spacing:.08em;}
+
+/* 連結顯示框 */
+.linkbox{margin-top:16px;border:1px dashed var(--line);border-radius:12px;padding:14px;background:var(--ink-3);}
+.linkbox .lk-cap{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-weight:600;margin-bottom:9px;}
+.linkbox .lk-url{font-family:var(--mono);font-size:12px;color:var(--text);word-break:break-all;background:var(--ink);
+  border:1px solid var(--line-soft);border-radius:9px;padding:10px 11px;line-height:1.5;}
+.copybtn{margin-top:10px;width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--ink-2);
+  color:var(--text);font-family:var(--sans);font-weight:700;font-size:14px;cursor:pointer;}
+.copybtn.done{border-color:var(--go);color:var(--go);}
+
+/* 戰績摘要（個人最佳） */
+.stats-summary{margin-top:14px;}
+.pb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pb-cell{background:var(--ink-2);border:1px solid var(--line-soft);border-radius:11px;padding:11px 6px;text-align:center;}
+.pb-cell .s{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.pb-cell .v{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:4px;}
+.pb-cell .v.empty{color:var(--muted-2);font-size:13px;}
+.link-row{margin-top:12px;text-align:center;}
+.textlink{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:13px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;}
+.textlink:hover{color:var(--text);}
+
+/* 戰績歷史列表 */
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:12px 2px;border-bottom:1px solid var(--line-soft);}
+.hist-item:last-child{border-bottom:none;}
+.hist-left{display:flex;align-items:center;gap:11px;}
+.hist-size{font-family:var(--mono);font-weight:700;font-size:13px;width:34px;height:34px;border-radius:9px;
+  background:var(--ink-3);display:flex;align-items:center;justify-content:center;flex:none;}
+.hist-when{font-size:12px;color:var(--muted);}
+.hist-mode{font-size:10px;color:var(--muted-2);margin-top:2px;}
+.hist-time{font-family:var(--mono);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;}
+.empty-hint{text-align:center;color:var(--muted);padding:24px 0;font-size:14px;}
+
+/* ---------- 遊戲畫面 ---------- */
+.game-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.timer{font-family:var(--mono);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums;}
+.timer .unit{font-size:15px;color:var(--muted);margin-left:5px;font-weight:400;}
+.target{text-align:right;}
+.target .t-cap{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-weight:600;}
+.target .t-num{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--hint);line-height:1.1;font-variant-numeric:tabular-nums;}
+.meta-strip{display:flex;justify-content:space-between;font-size:11px;color:var(--muted-2);margin-bottom:8px;font-family:var(--mono);}
+.progress{height:5px;background:var(--ink-3);border-radius:999px;overflow:hidden;margin-bottom:16px;}
+.progress > i{display:block;height:100%;background:var(--signal);border-radius:999px;transition:width .15s;}
+
+/* 方格盤 */
+.board{display:grid;gap:7px;touch-action:manipulation;}
+.cell{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--ink-3);color:var(--text);
+  font-family:var(--mono);font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  user-select:none;-webkit-user-select:none;transition:transform .08s, background .12s, border-color .12s, color .12s;}
+.cell:active{transform:scale(.94);}
+.cell.done{background:var(--go-dim);border-color:var(--go);color:var(--go);opacity:.6;cursor:default;}  /* 已點過（提醒模式開才會留） */
+.cell.wrong{background:var(--signal-dim);border-color:var(--signal);color:var(--signal);animation:shake .3s;} /* 點錯 */
+.cell.hit{background:var(--go);border-color:var(--go);color:#06231b;}  /* 點對瞬間閃綠 */
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+
+.abort{display:block;width:100%;margin-top:14px;padding:11px;background:none;border:1px solid var(--line-soft);
+  border-radius:11px;color:var(--muted);font-family:var(--sans);font-size:13px;cursor:pointer;}
+.abort:hover{border-color:var(--line);color:var(--text);}
+
+/* ---------- 結算畫面 ---------- */
+.result{text-align:center;padding:26px 18px;}
+.result .cap{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:14px;}
+.result .cap.pb{color:var(--go);}    /* 破個人最佳 */
+.result .cap.ok{color:var(--muted);}
+.result .big-time{font-family:var(--mono);font-size:56px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
+.result .big-time .unit{font-size:18px;color:var(--muted);margin-left:6px;}
+.result .rmeta{color:var(--muted);font-size:13px;margin-top:12px;}
+.result .rcode{font-family:var(--mono);color:var(--signal);}
+.result-actions{margin-top:24px;}
+.result .linkbox{text-align:left;margin-top:16px;}
+
+footer{text-align:center;margin-top:26px;font-size:11px;color:var(--muted-2);line-height:1.6;}
+
+/* 尊重「減少動態效果」的系統設定 */
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;}}

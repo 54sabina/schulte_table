@@ -260,7 +260,7 @@
       c.textContent = val;
       c.style.fontSize = fontSize;
       c.dataset.val = val;
-      c.addEventListener("click", () => tapCell(c, val));
+      c.addEventListener("click", (e) => tapCell(c, val, e));
       el.board.appendChild(c);
     });
 
@@ -287,8 +287,10 @@
   }
 
   // 點某一格
-  function tapCell(cell, val){
+  function tapCell(cell, val, e){
     if(!state.playing) return;
+    // 只接受真人產生的點擊：console 用 .click()/dispatchEvent 造的事件 isTrusted 為 false
+    if(e && e.isTrusted === false) return;
     if(cell.classList.contains("done")) return;   // 已標記完成的不再處理
 
     if(val === state.expected){

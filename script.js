@@ -436,8 +436,11 @@
       el.linkbox.classList.add("hidden");
     });
 
-    // 開始
-    el.startBtn.addEventListener("click", startGame);
+    // 開始（練習模式每次都換新題號，挑戰模式維持同一題）
+    el.startBtn.addEventListener("click", ()=>{
+      if(!state.challenge) state.seed = newSeed();
+      startGame();
+    });
 
     // 產生挑戰連結
     el.makeLinkBtn.addEventListener("click", ()=>{

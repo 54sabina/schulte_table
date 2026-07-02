@@ -145,9 +145,14 @@ h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em;}
 /* 戰績摘要（個人最佳） */
 .stats-summary{margin-top:14px;}
 .pb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.pb-cell{background:var(--ink-2);border:1px solid var(--line-soft);border-radius:11px;padding:11px 6px;text-align:center;}
+.pb-cell{background:var(--ink-2);border:1px solid var(--line-soft);border-radius:11px;padding:10px 5px;text-align:center;}
 .pb-cell .s{font-family:var(--mono);font-size:11px;color:var(--muted);}
-.pb-cell .v{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:4px;}
+/* 每格內含「提醒開 / 提醒關」兩行 */
+.pb-two{margin-top:6px;display:flex;flex-direction:column;gap:4px;}
+.pb-line{display:flex;align-items:baseline;justify-content:center;gap:5px;}
+.pb-tag{font-size:9px;color:var(--muted-2);letter-spacing:.02em;white-space:nowrap;}
+.pb-tag.off{color:var(--signal);}
+.pb-cell .v{font-family:var(--mono);font-size:15px;font-weight:700;}
 .pb-cell .v.empty{color:var(--muted-2);font-size:13px;}
 .link-row{margin-top:12px;text-align:center;}
 .textlink{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:13px;cursor:pointer;

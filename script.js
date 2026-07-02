@@ -170,21 +170,42 @@
     store.set("schulte:theme", state.theme);
   }
 
-  // 從 stats 算出每種大小的個人最佳（毫秒）
-  function bestBySize(){
+  // 從 stats 算出每種大小、每種提醒模式的個人最佳（毫秒）
+  // 回傳 { [size]: { on:ms|undefined, off:ms|undefined } }
+  function bestBySizeHint(){
     const m = {};
-    state.stats.forEach(r=>{ if(m[r.size] == null || r.ms < m[r.size]) m[r.size] = r.ms; });
+    state.stats.forEach(r=>{
+      const k = r.hint ? "on" : "off";
+      if(!m[r.size]) m[r.size] = {};
+      if(m[r.size][k] == null || r.ms < m[r.size][k]) m[r.size][k] = r.ms;
+    });
     return m;
   }
 
+  // 取某難度、某提醒模式的個人最佳（毫秒），沒有回 undefined
+  function bestOf(size, hint){
+    const b = bestBySizeHint()[size];
+    return b ? b[hint ? "on" : "off"] : undefined;
+  }
+
   // 把「個人最佳」畫進指定容器（設定頁和戰績頁共用）
+  // 每格同時顯示「提醒開 / 提醒關」兩個成績
   function renderBests(container){
-    const best = bestBySize();
+    const best = bestBySizeHint();
     container.innerHTML = [5,6,7,8].map(n=>{
-      const v = best[n];
-      const txt = v == null ? "—" : fmt(v);
-      const cls = v == null ? "v empty" : "v";
-      return '<div class="pb-cell"><div class="s">'+n+'×'+n+'</div><div class="'+cls+'">'+txt+'</div></div>';
+      const b = best[n] || {};
+      const cell = (v)=>{
+        const txt = v == null ? "—" : fmt(v);
+        const cls = v == null ? "v empty" : "v";
+        return '<span class="'+cls+'">'+txt+'</span>';
+      };
+      return '<div class="pb-cell">'+
+               '<div class="s">'+n+'×'+n+'</div>'+
+               '<div class="pb-two">'+
+                 '<div class="pb-line"><span class="pb-tag">提醒開</span>'+cell(b.on)+'</div>'+
+                 '<div class="pb-line"><span class="pb-tag off">提醒關</span>'+cell(b.off)+'</div>'+
+               '</div>'+
+             '</div>';
     }).join("");
   }
 
@@ -329,7 +350,7 @@
     stopTimer();
 
     const size = state.size;
-    const prevBest = bestBySize()[size];               // 這次之前的最佳
+    const prevBest = bestOf(size, state.hint);         // 這次之前、相同提醒模式的最佳
     const isPB = (prevBest == null || elapsed < prevBest);
 
     // 存進戰績（最多留 300 筆）

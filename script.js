@@ -359,7 +359,7 @@
     store.set("schulte:stats", JSON.stringify(state.stats));
 
     // 暫存結算資訊（給「再玩 / 分享」用）
-    state.res = { seed:state.seed, size, hint:state.hint, errors:state.errors };
+    state.res = { seed:state.seed, size, hint:state.hint, errors:state.errors, ms:elapsed };
 
     // 畫結算頁
     el.resCap.textContent = isPB ? "個人最佳 New Best" : (size + "×" + size + " 完成");
@@ -389,11 +389,12 @@
     copy(url, btn);
   }
 
-  function copy(text, btn){
+  function copy(text, btn, resetLabel){
+    resetLabel = resetLabel || "複製連結";
     const done = ()=>{
       btn.textContent = "已複製 ✓";
       btn.classList.add("done");
-      setTimeout(()=>{ btn.textContent = "複製連結"; btn.classList.remove("done"); }, 1800);
+      setTimeout(()=>{ btn.textContent = resetLabel; btn.classList.remove("done"); }, 1800);
     };
     const fallback = ()=>{   // 舊瀏覽器 / 無 clipboard API 時的備援
       try{
@@ -407,6 +408,34 @@
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(done).catch(fallback);
     } else fallback();
+  }
+
+  // 組出可分享的成績文字（含挑戰連結）。文字模板集中此處，方便日後調字。
+  function buildShareText(res){
+    const label = LABELS[res.size] ? "（" + LABELS[res.size] + "）" : "";
+    const score = res.errors ? (res.errors + " 次點錯") : "全對";
+    return "舒特爾方格挑戰\n\n" +
+           "時間　" + fmt(res.ms) + " 秒\n" +
+           "難度　" + res.size + "×" + res.size + label + "\n" +
+           "表現　" + score + "\n\n" +
+           "換你挑戰同一題，看看誰的專注度比較好 \n" +
+           buildUrl(res.seed, res.size, res.hint);
+  }
+
+  // 分享成績：手機優先叫系統分享面板（可直接選 LINE / Discord / IG），
+  // 不支援時退回「複製整段文字」，並在框內顯示讓桌機也能手動複製。
+  function shareResult(){
+    const text = buildShareText(state.res);
+    // 先把文字放進結算頁的框，桌機看得到、可再複製
+    el.resLinkUrl.textContent = text;
+    el.resLinkbox.classList.remove("hidden");
+    el.resCopyBtn.textContent = "複製成績";
+    el.resCopyBtn.classList.remove("done");
+    if(navigator.share){
+      navigator.share({ title:"舒爾特方格", text }).catch(()=>{});
+    } else {
+      copy(text, el.resCopyBtn, "複製成績");
+    }
   }
 
   // 回到「自己出題」狀態（清掉網址上的挑戰參數）
@@ -493,11 +522,8 @@
       state.seed = state.res.seed; state.size = state.res.size; state.hint = state.res.hint;
       startGame();
     });
-    el.shareBtn.addEventListener("click", ()=>{
-      const url = buildUrl(state.res.seed, state.res.size, state.res.hint);
-      showLink(el.resLinkUrl, el.resLinkbox, el.resCopyBtn, url);
-    });
-    el.resCopyBtn.addEventListener("click", ()=> copy(el.resLinkUrl.textContent, el.resCopyBtn));
+    el.shareBtn.addEventListener("click", shareResult);
+    el.resCopyBtn.addEventListener("click", ()=> copy(el.resLinkUrl.textContent, el.resCopyBtn, "複製成績"));
     el.resultBackBtn.addEventListener("click", ()=> showScreen("setup"));
     el.newChallengeBtn.addEventListener("click", newChallenge);
 

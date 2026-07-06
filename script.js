@@ -272,7 +272,7 @@
     // 依種子產生排列，動態建立格子
     const order = seededOrder(state.seed, n);
     const fontSize = Math.max(13, Math.round(34 - (n - 5) * 4)) + "px";
-    el.board.style.gridTemplateColumns = "repeat(" + n + ",1fr)";
+    el.board.style.gridTemplateColumns = "repeat(" + n + ",minmax(0,1fr))";
     el.board.style.gap = n >= 7 ? "5px" : "7px";
     el.board.innerHTML = "";
     order.forEach(val=>{

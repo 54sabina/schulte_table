@@ -372,6 +372,12 @@
     const prevBest = bestOf(size, state.hint);         // 這次之前、相同提醒模式的最佳
     const isPB = (prevBest == null || elapsed < prevBest);
 
+    // 同一題(題號+難度+提醒)先前已完成的次數；達 2 次後，這次(第 3 次起)不列入排行榜
+    const priorSamePuzzle = state.stats.filter(r =>
+      r.seed === state.seed && r.size === size && r.hint === state.hint
+    ).length;
+    const rankable = priorSamePuzzle < 2;   // prior 0/1 → 可上榜；prior>=2 → 第 3 次起不列入
+
     // 存進戰績（最多留 300 筆）
     state.stats.unshift({ size, ms:elapsed, errors:state.errors, hint:state.hint, seed:state.seed, ts:Date.now() });
     if(state.stats.length > 300) state.stats.length = 300;
@@ -391,7 +397,7 @@
     el.resMeta.innerHTML = meta;
     el.resLinkbox.classList.add("hidden");
 
-    uploadScore(state.res);  // 上傳玩家排行榜（未登入會提示登入）
+    uploadScore(state.res, rankable);  // 上傳玩家排行榜（未登入會提示登入；同題超過 2 次不列入）
     refreshStatsSummary();   // 更新設定頁摘要
     showScreen("result");
   }
@@ -495,10 +501,15 @@
   }
 
   // 上傳這局成績（結算時呼叫，不阻塞畫面）
-  function uploadScore(res){
+  function uploadScore(res, rankable){
     const LB = window.LB;
     if(!LB || !LB.currentUser){
       el.resLbNote.innerHTML = "登入 Google 就能把成績傳上玩家排行榜";
+      el.resLbNote.className = "lb-note muted";
+      return;
+    }
+    if(!rankable){
+      el.resLbNote.innerHTML = "同一題已玩超過 2 次，這次成績不列入排行榜";
       el.resLbNote.className = "lb-note muted";
       return;
     }

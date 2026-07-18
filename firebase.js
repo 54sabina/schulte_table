@@ -34,15 +34,11 @@ window.LB = {
     });
   },
 
-  // 防重入：popup 尚未結束前，重複點擊只回傳同一個 Promise，
-  // 避免第二次 signInWithPopup 取消前一次而丟出 auth/cancelled-popup-request
-  _loginPromise: null,
-  login(){
-    if(this._loginPromise) return this._loginPromise;
-    this._loginPromise = signInWithPopup(auth, provider)
-      .finally(() => { this._loginPromise = null; });
-    return this._loginPromise;
-  },
+  // 每次都直接開新 popup。重複點擊時前一個 popup 會被取消並丟出
+  // auth/cancelled-popup-request，那是無害錯誤，由 script.js 端忽略即可。
+  // （不要在此快取 Promise 做防重入：若 popup 因 COOP 等原因偵測不到關閉、
+  //   Promise 遲遲不 settle，會導致取消後再也無法登入而卡死。）
+  login(){  return signInWithPopup(auth, provider); },
   logout(){ return signOut(auth); },
 
   // 上傳成績：只有比自己線上最佳更快時才寫入（省流量、也讓榜=個人最佳）

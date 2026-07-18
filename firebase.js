@@ -34,7 +34,15 @@ window.LB = {
     });
   },
 
-  login(){  return signInWithPopup(auth, provider); },
+  // 防重入：popup 尚未結束前，重複點擊只回傳同一個 Promise，
+  // 避免第二次 signInWithPopup 取消前一次而丟出 auth/cancelled-popup-request
+  _loginPromise: null,
+  login(){
+    if(this._loginPromise) return this._loginPromise;
+    this._loginPromise = signInWithPopup(auth, provider)
+      .finally(() => { this._loginPromise = null; });
+    return this._loginPromise;
+  },
   logout(){ return signOut(auth); },
 
   // 上傳成績：只有比自己線上最佳更快時才寫入（省流量、也讓榜=個人最佳）

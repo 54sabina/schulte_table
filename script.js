@@ -494,7 +494,14 @@
     const LB = window.LB;
     if(!LB) return;
     el.loginBtn.addEventListener("click", ()=>{
-      LB.login().catch(err => alert("登入失敗：" + (err && err.message ? err.message : err)));
+      LB.login().catch(err => {
+        const code = err && err.code;
+        // 這幾種是使用者自己取消或重複開啟 popup，屬正常操作，不要跳警告
+        if(code === "auth/cancelled-popup-request" ||
+           code === "auth/popup-closed-by-user" ||
+           code === "auth/user-cancelled") return;
+        alert("登入失敗：" + (err && err.message ? err.message : err));
+      });
     });
     el.logoutBtn.addEventListener("click", ()=> LB.logout());
     LB.onAuth(renderAccount);

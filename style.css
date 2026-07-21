@@ -75,36 +75,50 @@ body{
 
 .wrap{max-width:560px;margin:0 auto;padding:24px 16px 60px;}
 
-/* ---------- 右上角主題切換鈕 ---------- */
+/* ---------- 標題列（標題 + 右側圓鈕組） ---------- */
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;}
+.header-text{min-width:0;}
+.eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--signal);font-weight:600;margin-bottom:8px;}
+h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em;}
+.sub{font-size:12px;color:var(--muted);margin-top:7px;}
+
+/* 右側圓鈕組：Google 登入 + 主題切換並排 */
+.topbar{display:flex;align-items:center;gap:10px;flex:none;}
+
 .theme-btn{
-  position:fixed;top:14px;right:14px;z-index:20;
-  width:40px;height:40px;border-radius:50%;
+  width:40px;height:40px;border-radius:50%;flex:none;
   border:1px solid var(--line);background:var(--ink-2);color:var(--text);
   cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;
 }
 .theme-btn:hover{border-color:var(--signal);color:var(--signal);}
 
-/* ---------- 標題 ---------- */
-header{margin-bottom:20px;padding-right:44px;}
-.eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--signal);font-weight:600;margin-bottom:8px;}
-h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em;}
-.sub{font-size:12px;color:var(--muted);margin-top:7px;}
-
-/* ---------- 帳號列（Google 登入 / 使用者資訊） ---------- */
-.account{display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px;min-height:38px;}
-.acct-login{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;
-  border:1px solid var(--line);background:var(--ink-2);color:var(--text);
-  font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;}
+/* ---------- 帳號（Google 登入 / 使用者資訊） ---------- */
+.account{display:flex;align-items:center;}
+/* 未登入：只放 Google 圖示的圓鈕，與主題鈕同尺寸 */
+.acct-login{width:40px;height:40px;border-radius:50%;padding:0;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);background:var(--ink-2);cursor:pointer;transition:.15s;}
 .acct-login:hover{border-color:var(--signal);}
 .acct-login svg{flex:none;}
-.acct-user{display:inline-flex;align-items:center;gap:10px;background:var(--ink-2);
-  border:1px solid var(--line-soft);border-radius:999px;padding:5px 6px 5px 6px;}
-.acct-photo{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none;
-  border:1px solid var(--line);background:var(--ink-3);display:block;}
-.acct-name{font-size:13px;font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.acct-logout{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:12px;
-  cursor:pointer;padding:5px 10px;border-radius:999px;transition:.15s;}
-.acct-logout:hover{color:var(--signal);background:var(--ink-3);}
+/* 登入後：圓頭像為主，點擊展開下拉選單 */
+.acct-user{position:relative;display:inline-flex;align-items:center;}
+.acct-avatar{width:40px;height:40px;border-radius:50%;padding:0;flex:none;cursor:pointer;
+  border:1px solid var(--line);background:var(--ink-2);overflow:hidden;position:relative;transition:.15s;
+  display:flex;align-items:center;justify-content:center;}
+.acct-avatar:hover{border-color:var(--signal);}
+.acct-photo{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;background:var(--ink-3);}
+.acct-initial{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);text-transform:uppercase;}
+/* 頭像下方的下拉：名字 + 登出 */
+.acct-menu{position:absolute;top:48px;right:0;z-index:30;min-width:150px;
+  background:var(--ink-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+  box-shadow:0 12px 30px rgba(0,0,0,.28);opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .15s, transform .15s, visibility .15s;}
+.acct-user.open .acct-menu{opacity:1;visibility:visible;transform:translateY(0);}
+.acct-name{display:block;font-size:13px;font-weight:600;color:var(--text);
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px;}
+.acct-logout{width:100%;background:var(--ink-3);border:1px solid var(--line-soft);color:var(--muted);
+  font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;padding:8px 10px;border-radius:9px;transition:.15s;}
+.acct-logout:hover{color:var(--signal);border-color:var(--signal);}
 
 /* ---------- 卡片與表單元件 ---------- */
 .card{background:var(--ink-2);border:1px solid var(--line-soft);border-radius:var(--radius);padding:18px;}

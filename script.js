@@ -139,8 +139,9 @@
     },
     // 帳號列
     accountBar:$("accountBar"), loginBtn:$("loginBtn"),
-    acctUser:$("acctUser"), acctPhoto:$("acctPhoto"),
-    acctName:$("acctName"), logoutBtn:$("logoutBtn"),
+    acctUser:$("acctUser"), acctPhotoBtn:$("acctPhotoBtn"),
+    acctPhoto:$("acctPhoto"), acctInitial:$("acctInitial"),
+    acctMenu:$("acctMenu"), acctName:$("acctName"), logoutBtn:$("logoutBtn"),
     // setup
     banner:$("challengeBanner"), bannerText:$("challengeText"),
     sizeChips:$("sizeChips"), hintToggle:$("hintToggle"),
@@ -652,10 +653,20 @@
   function renderAccount(u){
     el.loginBtn.classList.toggle("hidden", !!u);
     el.acctUser.classList.toggle("hidden", !u);
+    el.acctUser.classList.remove("open");   // 切換登入狀態時收合下拉
     if(u){
-      el.acctName.textContent = u.displayName || "玩家";
-      if(u.photoURL){ el.acctPhoto.src = u.photoURL; el.acctPhoto.classList.remove("hidden"); }
-      else el.acctPhoto.classList.add("hidden");
+      const name = u.displayName || "玩家";
+      el.acctName.textContent = name;
+      // 有大頭貼就用圖，否則退回名字首字的圓底（維持可點目標）
+      if(u.photoURL){
+        el.acctPhoto.src = u.photoURL;
+        el.acctPhoto.classList.remove("hidden");
+        el.acctInitial.classList.add("hidden");
+      } else {
+        el.acctPhoto.classList.add("hidden");
+        el.acctInitial.textContent = name.slice(0, 1);
+        el.acctInitial.classList.remove("hidden");
+      }
     }
   }
 
@@ -674,6 +685,16 @@
       });
     });
     el.logoutBtn.addEventListener("click", ()=> LB.logout());
+    // 點頭像展開/收合名字＋登出；點面板外部自動收合
+    el.acctPhotoBtn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      el.acctUser.classList.toggle("open");
+    });
+    document.addEventListener("click", (e)=>{
+      if(el.acctUser.classList.contains("open") && !el.acctUser.contains(e.target)){
+        el.acctUser.classList.remove("open");
+      }
+    });
     LB.onAuth(renderAccount);
   }
 

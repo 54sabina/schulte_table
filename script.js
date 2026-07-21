@@ -162,7 +162,8 @@
     // result
     resCap:$("resCap"), resTime:$("resTime"), resMeta:$("resMeta"),
     againBtn:$("againBtn"), shareBtn:$("shareBtn"), resultBackBtn:$("resultBackBtn"),
-    resLinkbox:$("resLinkbox"), resLinkUrl:$("resLinkUrl"), resCopyBtn:$("resCopyBtn")
+    resLinkbox:$("resLinkbox"), resLinkUrl:$("resLinkUrl"), resCopyBtn:$("resCopyBtn"),
+    resShareBox:$("resShareBox"), resShareImg:$("resShareImg"), resDownBtn:$("resDownBtn")
   };
 
   /* =========================================================
@@ -384,7 +385,7 @@
     store.set("schulte:stats", JSON.stringify(state.stats));
 
     // 暫存結算資訊（給「再玩 / 分享」用）
-    state.res = { seed:state.seed, size, hint:state.hint, errors:state.errors, ms:elapsed };
+    state.res = { seed:state.seed, size, hint:state.hint, errors:state.errors, ms:elapsed, isPB };
 
     // 畫結算頁
     el.resCap.textContent = isPB ? "個人最佳 New Best" : (size + "×" + size + " 完成");
@@ -396,6 +397,7 @@
     if(!isPB) meta += "<br>個人最佳 " + fmt(prevBest) + " 秒";
     el.resMeta.innerHTML = meta;
     el.resLinkbox.classList.add("hidden");
+    el.resShareBox.classList.add("hidden");
 
     uploadScore(state.res, rankable);  // 上傳玩家排行榜（未登入會提示登入；同題超過 2 次不列入）
     refreshStatsSummary();   // 更新設定頁摘要
@@ -440,28 +442,196 @@
   function buildShareText(res){
     const label = LABELS[res.size] ? "（" + LABELS[res.size] + "）" : "";
     const score = res.errors ? (res.errors + " 次點錯") : "全對";
-    return "舒特爾方格挑戰\n\n" +
+    return "舒爾特方格挑戰\n\n" +
            "時間　" + fmt(res.ms) + " 秒\n" +
            "難度　" + res.size + "×" + res.size + label + "\n" +
+           "提醒　" + (res.hint ? "開" : "關") + "\n" +
            "表現　" + score + "\n\n" +
            "換你挑戰同一題，看看誰的專注度比較好 \n" +
            buildUrl(res.seed, res.size, res.hint);
   }
 
-  // 分享成績：手機優先叫系統分享面板（可直接選 LINE / Discord / IG），
-  // 不支援時退回「複製整段文字」，並在框內顯示讓桌機也能手動複製。
+  /* ----- 成績圖片 ----- */
+
+  // 讀目前主題的 CSS 變數，讓圖片配色跟著深/淺色走
+  function cssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#000";
+  }
+
+  // 相容舊瀏覽器的圓角矩形
+  function roundRect(ctx, x, y, w, h, r){
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(x, y, w, h, r); return; }
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // 等 web font 載好再畫，否則 canvas 會用系統字型
+  function ensureFonts(){
+    if(!document.fonts || !document.fonts.load) return Promise.resolve();
+    return Promise.all([
+      document.fonts.load('700 190px "Space Mono"'),
+      document.fonts.load('700 66px "Space Grotesk"'),
+      document.fonts.load('500 30px "Space Grotesk"'),
+      document.fonts.load('700 26px "Space Mono"')
+    ]).then(()=>document.fonts.ready).catch(()=>{});
+  }
+
+  // 把成績畫成一張 1080×1080 的方形圖，回傳 Promise<Blob|null>
+  function buildShareImage(res){
+    return ensureFonts().then(()=>new Promise(resolve=>{
+      const W = 1080, H = 1080;
+      const cv = document.createElement("canvas");
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext("2d");
+      if(!ctx){ resolve(null); return; }
+
+      const C = {
+        bg:cssVar("--ink"), card:cssVar("--ink-2"), surf:cssVar("--ink-3"),
+        line:cssVar("--line"), text:cssVar("--text"), muted:cssVar("--muted"),
+        signal:cssVar("--signal"), signalDim:cssVar("--signal-dim"),
+        go:cssVar("--go"), hint:cssVar("--hint")
+      };
+      const mono = '"Space Mono",ui-monospace,monospace';
+      const sans = '"Space Grotesk",system-ui,-apple-system,sans-serif';
+      const setLS = v => { try{ ctx.letterSpacing = v; }catch(e){} };
+
+      // 底 + 卡片
+      ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+      roundRect(ctx, 40, 40, 1000, 1000, 44);
+      ctx.fillStyle = C.card; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = C.line; ctx.stroke();
+
+      const L = 100, R = 980;
+
+      // 眉標
+      ctx.fillStyle = C.signal;
+      ctx.beginPath(); ctx.arc(L + 8, 162, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+      ctx.font = '700 26px ' + mono; ctx.fillStyle = C.muted; setLS("3px");
+      ctx.fillText("SCHULTE · 同題對戰", L + 30, 172);
+      setLS("0px");
+
+      // 破紀錄徽章（右上）
+      if(res.isPB){
+        ctx.font = '700 26px ' + sans;
+        const bt = "★ 個人最佳";
+        const bw = ctx.measureText(bt).width + 44;
+        roundRect(ctx, R - bw, 138, bw, 46, 23);
+        ctx.fillStyle = C.signalDim; ctx.fill();
+        ctx.fillStyle = C.signal; ctx.textAlign = "center";
+        ctx.fillText(bt, R - bw / 2, 170); ctx.textAlign = "left";
+      }
+
+      // 標題
+      ctx.font = '700 66px ' + sans; ctx.fillStyle = C.text;
+      ctx.fillText("舒爾特方格", L, 262);
+
+      // 分隔線
+      ctx.strokeStyle = C.line; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(L, 300); ctx.lineTo(R, 300); ctx.stroke();
+
+      // 完成時間
+      ctx.font = '500 30px ' + sans; ctx.fillStyle = C.muted;
+      ctx.fillText("完成時間", L, 400);
+
+      const timeStr = fmt(res.ms);
+      ctx.font = '700 190px ' + mono; setLS("-2px");
+      ctx.fillStyle = res.isPB ? C.signal : C.text;
+      ctx.fillText(timeStr, L, 570);
+      const tw = ctx.measureText(timeStr).width; setLS("0px");
+      ctx.font = '500 54px ' + sans; ctx.fillStyle = C.muted;
+      ctx.fillText("秒", L + tw + 20, 570);
+
+      // 三格資訊
+      const label = LABELS[res.size] || "";
+      const perf = res.errors ? (res.errors + " 次點錯") : "全對";
+      const pills = [
+        { k:"難度", v:res.size + "×" + res.size + (label ? " " + label : "") },
+        { k:"提醒", v:res.hint ? "開" : "關" },
+        { k:"表現", v:perf, hot:!!res.errors }
+      ];
+      const gap = 20, pw = (R - L - gap * 2) / 3, py = 650, ph = 130;
+      pills.forEach((p, i)=>{
+        const px = L + i * (pw + gap);
+        roundRect(ctx, px, py, pw, ph, 20);
+        ctx.fillStyle = C.surf; ctx.fill();
+        ctx.font = '700 24px ' + mono; ctx.fillStyle = C.muted; setLS("1px");
+        ctx.fillText(p.k, px + 26, py + 48); setLS("0px");
+        ctx.font = '700 34px ' + sans;
+        ctx.fillStyle = p.hot ? C.signal : (p.k === "表現" ? C.go : C.text);
+        ctx.fillText(p.v, px + 26, py + 96);
+      });
+
+      // 底部：換你挑戰同一題
+      const by = 830, bh = 120;
+      roundRect(ctx, L, by, R - L, bh, 24);
+      ctx.fillStyle = C.signalDim; ctx.fill();
+      ctx.font = '700 38px ' + sans; ctx.fillStyle = C.signal;
+      ctx.fillText("換你挑戰同一題 →", L + 34, by + 52);
+      ctx.font = '400 26px ' + mono; ctx.fillStyle = C.text;
+      const host = (location.host || "").replace(/^www\./, "");
+      ctx.fillText("題號 " + res.seed + "　·　" + host, L + 34, by + 92);
+
+      cv.toBlob(b => resolve(b), "image/png");
+    }));
+  }
+
+  // 觸發下載（桌機備援）
+  function downloadBlob(blob, name){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }
+
+  // 分享成績：組出成績圖 + 同題連結。
+  // 手機能分享檔案時，直接把「圖片 + 連結文字」丟系統面板（LINE / IG / Discord…）；
+  // 不支援檔案分享時退回舊流程（純文字），並在框內顯示圖片預覽供下載、連結供複製。
   function shareResult(){
-    const text = buildShareText(state.res);
-    // 先把文字放進結算頁的框，桌機看得到、可再複製
-    el.resLinkUrl.textContent = text;
-    el.resLinkbox.classList.remove("hidden");
-    el.resCopyBtn.textContent = "複製成績";
-    el.resCopyBtn.classList.remove("done");
-    if(navigator.share){
-      navigator.share({ title:"舒爾特方格", text }).catch(()=>{});
-    } else {
+    const res = state.res;
+    const text = buildShareText(res);
+    const btn = el.shareBtn;
+    const origLabel = btn.textContent;
+    btn.disabled = true; btn.textContent = "產生圖片…";
+
+    buildShareImage(res).then(blob=>{
+      btn.disabled = false; btn.textContent = origLabel;
+      const file = blob ? new File([blob], "schulte-" + res.seed + ".png", { type:"image/png" }) : null;
+
+      // 手機：系統分享面板一次帶圖片 + 連結
+      if(file && navigator.canShare && navigator.canShare({ files:[file] }) && navigator.share){
+        navigator.share({ files:[file], text, title:"舒爾特方格" }).catch(()=>{});
+        return;
+      }
+
+      // 桌機 / 不支援檔案分享：顯示圖片預覽（可下載）+ 連結文字（可複製）
+      if(blob && el.resShareImg){
+        el.resShareImg.src = URL.createObjectURL(blob);
+        el.resShareBox.classList.remove("hidden");
+        el.resDownBtn.onclick = ()=>downloadBlob(blob, "schulte-" + res.seed + ".png");
+      }
+      el.resLinkUrl.textContent = text;
+      el.resLinkbox.classList.remove("hidden");
+      el.resCopyBtn.textContent = "複製成績";
+      el.resCopyBtn.classList.remove("done");
+      if(navigator.share){
+        navigator.share({ title:"舒爾特方格", text }).catch(()=>{});
+      } else {
+        copy(text, el.resCopyBtn, "複製成績");
+      }
+    }).catch(()=>{
+      // 出錯就回到最單純的文字分享，確保功能不會壞
+      btn.disabled = false; btn.textContent = origLabel;
+      el.resLinkUrl.textContent = text;
+      el.resLinkbox.classList.remove("hidden");
       copy(text, el.resCopyBtn, "複製成績");
-    }
+    });
   }
 
   // 回到「自己出題」狀態（清掉網址上的挑戰參數）

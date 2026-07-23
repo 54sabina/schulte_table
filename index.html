@@ -15,10 +15,10 @@
   <meta name="theme-color" content="#FF7A9C">
 
   <!-- 樣式表（同一資料夾） -->
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
 
   <!-- 邏輯（defer：等 HTML 解析完再執行，確保抓得到下面的元素） -->
-  <script src="script.js?v=2" defer></script>
+  <script src="script.js?v=3" defer></script>
 
   <!-- Firebase 整合層（ES module，會非同步載入 SDK 後掛上 window.LB） -->
   <script type="module" src="firebase.js"></script>
@@ -29,9 +29,10 @@
 
     <!-- 標題列：左邊標題，右邊「Google 登入 + 深淺色切換」兩顆圓鈕並排 -->
     <header>
-      <div class="header-text">
+      <!-- 整塊標題區都是隱藏關卡的觸發熱區（連點五下） -->
+      <div class="header-text" id="titleTap">
         <div class="eyebrow">專注度訓練 · 多人同題對戰</div>
-        <h1 id="titleTap">舒爾特方格</h1>
+        <h1>舒爾特方格</h1>
       </div>
 
       <div class="topbar">

@@ -77,12 +77,14 @@ body{
 
 /* ---------- 標題列（標題 + 右側圓鈕組） ---------- */
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;}
-.header-text{min-width:0;}
-.eyebrow{font-size:11px;letter-spacing:.08em;color:var(--signal);font-weight:600;margin-bottom:8px;}
-/* 連點五下解鎖隱藏關卡：關掉反白與雙擊縮放，免得看起來像可以選取的文字 */
-h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em;
+/* 整塊標題區是隱藏關卡的觸發熱區：
+   touch-action:manipulation 關掉 Safari 的雙擊縮放（雙指縮放不受影響），
+   再關掉反白與長按選單，免得連點時看起來像在選取文字 */
+.header-text{min-width:0;
   cursor:default;touch-action:manipulation;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+.eyebrow{font-size:11px;letter-spacing:.08em;color:var(--signal);font-weight:600;margin-bottom:8px;}
+h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em;}
 
 /* ---------- 玩法（問號圓鈕 + 展開浮層） ---------- */
 .help{display:flex;}

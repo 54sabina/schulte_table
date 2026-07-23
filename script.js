@@ -879,6 +879,8 @@
       if(taps >= 5){ taps = 0; toggleSecret(); return; }
       tapTimer = setTimeout(()=>{ taps = 0; }, 1500);   // 超過 1.5 秒沒下一下就重數
     });
+    // Safari 保險：擋掉 touch-action 之外殘留的雙擊縮放
+    el.titleTap.addEventListener("dblclick", e => e.preventDefault());
 
     // 難度鈕（挑戰模式下鎖定）；兩排共用同一個處理
     const onSizeClick = e=>{
